@@ -1,0 +1,72 @@
+#!/bin/sh
+
+INSTALLDIR='/usr/local/livecloud/bin/yynwadapter'
+MODULE='yynwadapter'
+BIN='neutronadapter.py'
+PY='/usr/bin/python'
+
+__getpid() {
+    ps -eopid,command | grep $BIN | grep -v grep | awk '{print $1}'
+}
+
+__start() {
+    pid=`__getpid`
+    if [[ -n "$pid" ]]; then
+        echo "$MODULE is running ... (pid $pid)"
+    else
+        echo -n "Starting $MODULE ..."
+        $PY $INSTALLDIR/$BIN -d
+        pid=`__getpid`
+        if [[ -n "$pid" ]]; then
+            echo ' ok'
+        else
+            echo ' failed'
+        fi
+    fi
+}
+
+__stop() {
+    pid=`__getpid`
+    if [[ -n "$pid" ]]; then
+        echo -n "Stoping $MODULE ..."
+        kill -9 $pid
+        pid=`__getpid`
+        if [[ -z "$pid" ]]; then
+            echo ' ok'
+        else
+            echo ' failed'
+        fi
+    fi
+}
+
+__status() {
+    pid=`__getpid`
+    if [[ -n "$pid" ]]; then
+        echo "$MODULE is running ... (pid $pid)"
+    else
+        echo "$MODULE is not running ..."
+    fi
+}
+
+main() {
+    opt=$1
+    if [[ -z "$opt" ]]; then
+        opt='status'
+    fi
+    case $opt in
+    start)
+        __start
+        ;;
+    stop)
+        __stop
+        ;;
+    restart)
+        __stop
+        __start
+        ;;
+    status)
+        __status
+    esac
+}
+
+main $@

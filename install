@@ -1,0 +1,34 @@
+#!/bin/sh
+
+MODULE='yynwadapter'
+TGZFILE="${MODULE}.tgz"
+INSTALLDIR='/usr/local/livecloud/bin/'
+
+__install() {
+    $MODULE stop >/dev/null 2>/dev/null
+    mkdir -p $INSTALLDIR
+    cp -rf ../$MODULE $INSTALLDIR
+    mysql -uroot -psecurity421 <$INSTALLDIR/$MODULE/mysql_database_init.sql >/dev/null 2>/dev/null
+    ln -sf $INSTALLDIR/$MODULE/operate /usr/bin/$MODULE
+}
+
+__pack() {
+    (cd ..; tar czf $TGZFILE yynwadapter '--exclude=*.pyc' --exclude=.git --exclude=$TGZFILE; cd - >/dev/null; mv -f ../$TGZFILE .)
+}
+
+main() {
+    opt=$1
+    if [[ -z "$opt" ]]; then
+        opt='install'
+    fi
+    case $opt in
+    install)
+        __install
+        ;;
+    pack)
+        __pack
+        ;;
+    esac
+}
+
+main $@
